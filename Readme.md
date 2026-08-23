@@ -1,33 +1,34 @@
 # devops-pipeline-demo
- 
-Простое REST API для заметок — пет-проект для отработки CI/CD пайплайна.
- 
-## Эндпоинты
- 
-- `GET /` — приветствие
+
+A simple REST API for notes — a pet project for practicing a CI/CD pipeline.
+
+## Endpoints
+
+- `GET /` — greeting
 - `GET /health` — healthcheck
-- `GET /api/info` — версия и статистика приложения
-- `GET /api/notes` — список заметок
-- `GET /api/notes/:id` — одна заметка
-- `POST /api/notes` — создать заметку (`{title, content}`)
-- `PUT /api/notes/:id` — обновить заметку
-- `DELETE /api/notes/:id` — удалить заметку
-## Запуск локально
- 
+- `GET /api/info` — app version and stats
+- `GET /api/notes` — list notes
+- `GET /api/notes/:id` — get a single note
+- `POST /api/notes` — create a note (`{title, content}`)
+- `PUT /api/notes/:id` — update a note
+- `DELETE /api/notes/:id` — delete a note
+
+## Running locally
+
 ```bash
 npm install
 npm start
 ```
- 
-## Запуск в Docker
- 
+
+## Running in Docker
+
 ```bash
 docker build -t devops-pipeline-demo .
 docker run -p 3000:3000 devops-pipeline-demo
 ```
- 
-## Проверка
- 
+
+## Verification
+
 ```bash
 curl localhost:3000/health
 curl -X POST localhost:3000/api/notes -H "Content-Type: application/json" -d '{"title":"Test"}'
