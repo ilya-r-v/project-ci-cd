@@ -1,12 +1,16 @@
 FROM node:20-alpine
-
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm install --omit=dev
 
+# dev
+FROM base AS dev
+RUN npm install
 COPY . .
+CMD ["node", "--watch", "index.js"]
 
+# prod
+FROM base AS prod
+RUN npm install --omit=dev
+COPY . .
 EXPOSE 3000
-
 CMD ["node", "index.js"]

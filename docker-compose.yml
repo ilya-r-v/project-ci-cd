@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: .
+      target: dev
+    ports: 
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - PORT=3000
+
+  test: 
+    build:
+      context: .
+      target: dev
+    volumes:
+    - ./app
+    - /app/node_modules
+    command: npm test
+    profiles: ["test"]
