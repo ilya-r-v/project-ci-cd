@@ -2,6 +2,8 @@
 
 A simple REST API for notes — a pet project for practicing a CI/CD pipeline.
 
+![CI](https://github.com/ilya-r-v/devops-pipeline-demo/actions/workflows/ci.yml/badge.svg)
+
 ## Endpoints
 
 - `GET /` — greeting
