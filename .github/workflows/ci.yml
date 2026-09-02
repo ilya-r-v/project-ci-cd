@@ -64,13 +64,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -118,3 +111,31 @@ jobs:
       - name: Cleanup
         if: always()
         run: docker rm -f smoke-test
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Ansible
+        run: |
+          pip install ansible
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Configure SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Generate inventory
+        run: |
+          echo "[staging]" > ansible/inventory.ini
+          echo "staging_host ansible_host=${{ secrets.VPS_HOST }} ansible_user=deploy" >> ansible/inventory.ini
+
+      - name: Run Ansible playbook
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/deploy-staging.yml \
+            --private-key ~/.ssh/deploy_key

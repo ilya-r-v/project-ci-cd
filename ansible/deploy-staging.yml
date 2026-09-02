@@ -1,0 +1,63 @@
+---
+- name: Deploy notes API to staging
+  hosts: staging
+  become: true
+  vars:
+    image: "ghcr.io/ilya-r-v/project-ci-cd:latest"
+    container_name: "notes-staging"
+    host_port: 3001
+
+  tasks:
+    - name: Install Docker prerequisites
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_check
+      ignore_errors: true
+      changed_when: false
+
+    - name: Install Docker via convenience script
+      shell: curl -fsSL https://get.docker.com | sh
+      when: docker_check.rc != 0
+
+    - name: Ensure deploy user is in docker group
+      user:
+        name: deploy
+        groups: docker
+        append: true
+
+    - name: Pull latest image
+      community.docker.docker_image:
+        name: "{{ image }}"
+        source: pull
+        force_source: true
+
+    - name: Remove old container if exists
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+
+    - name: Run new container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image }}"
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "{{ host_port }}:3000"
+
+    - name: Wait for app to respond
+      uri:
+        url: "http://localhost:{{ host_port }}/health"
+        status_code: 200
+      register: health_check
+      retries: 5
+      delay: 2
+      until: health_check.status == 200
