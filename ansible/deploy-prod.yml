@@ -62,23 +62,3 @@
       retries: 5
       delay: 2
       until: health_check.status == 200
-      - name: Send Telegram notification
-        if: always()
-        env:
-          TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: |
-          if [[ "${{ job.status }}" == "success" ]]; then
-            STATUS="PROD DEPLOY SUCCESS"
-          else
-            STATUS="PROD DEPLOY FAILED"
-          fi
-          MESSAGE="${STATUS}
-          Repo: ${{ github.repository }}
-          Image tag: ${{ github.event.inputs.image_tag }}
-          Deployed by: ${{ github.actor }}
-          Run: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-          curl -s -X POST "https://api.telegram.org/bot${TOKEN}/sendMessage" \
-            -d chat_id="${CHAT_ID}" \
-            -d text="${MESSAGE}"
