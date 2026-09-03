@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Тег образа для деплоя на prod"
+        required: true
+        default: "latest"
 
 env:
   REGISTRY: ghcr.io
@@ -136,8 +142,42 @@ jobs:
         run: |
           echo "[staging]" > ansible/inventory.ini
           echo "staging_host ansible_host=${{ secrets.VPS_HOST }} ansible_user=deploy" >> ansible/inventory.ini
+          echo "" >> ansible/inventory.ini
+          echo "[production]" >> ansible/inventory.ini
+          echo "prod_host ansible_host=${{ secrets.VPS_HOST }} ansible_user=deploy" >> ansible/inventory.ini
 
       - name: Run Ansible playbook
         run: |
           ansible-playbook -i ansible/inventory.ini ansible/deploy-staging.yml \
             --private-key ~/.ssh/deploy_key
+  deploy-prod:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install Ansible
+        run: |
+          pip install ansible
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Configure SSH key
+        env:
+          SSH_PRIVATE_KEY_B64: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY_B64" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Generate inventory
+        run: |
+          echo "[production]" > ansible/inventory.ini
+          echo "prod_host ansible_host=${{ secrets.VPS_HOST }} ansible_user=deploy" >> ansible/inventory.ini
+
+      - name: Run Ansible playbook
+        run: |
+          ansible-playbook -i ansible/inventory.ini ansible/deploy-prod.yml \
+            --private-key ~/.ssh/deploy_key \
+            -e "image_tag=${{ github.event.inputs.image_tag }}"
