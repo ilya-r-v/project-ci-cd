@@ -132,10 +132,6 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Validate SSH key
-        run: |
-          ssh-keygen -y -f ~/.ssh/deploy_key && echo "KEY OK" || echo "KEY INVALID"
-
       - name: Generate inventory
         run: |
           echo "[staging]" > ansible/inventory.ini
