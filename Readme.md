@@ -1,7 +1,6 @@
 # devops-pipeline-demo
 
 ![CI](https://github.com/ilya-r-v/project-ci-cd/actions/workflows/ci.yml/badge.svg)
-![Healthcheck](https://github.com/ilya-r-v/project-ci-cd/actions/workflows/healthcheck.yml/badge.svg)
 
 A small REST API for notes, built as a hands-on pet project to practice a full CI/CD pipeline end to end — from a Dockerized Node.js app to automated staging deploys, gated production releases, and monitoring.
 
