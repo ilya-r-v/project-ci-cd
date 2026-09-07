@@ -60,3 +60,12 @@ describe("Notes CRUD", () => {
     expect(check.statusCode).toBe(404);
   });
 });
+
+describe("GET /metrics", () => {
+  it("returns Prometheus-formatted metrics", async () => {
+    const res = await request(app).get("/metrics");
+    expect(res.statusCode).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/text\/plain/);
+    expect(res.text).toContain("http_requests_total");
+  });
+});
