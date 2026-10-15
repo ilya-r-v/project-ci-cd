@@ -29,3 +29,17 @@ services:
      - "9090:9090"
     depends_on:
       - api
+  
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3030:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/dashboard.json:/var/lib/grafana/dashboards/dashboard.json
+    depends_on:
+      - prometheus
+
+volumes:
+  grafana-data:
